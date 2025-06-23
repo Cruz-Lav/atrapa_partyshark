@@ -83,7 +83,7 @@
         .shark {
             position: absolute;
             width: 120px;
-            height: 120px;
+            height: 180px;
             cursor: pointer;
             transition: all 0.15s ease;
             z-index: 10;
@@ -553,7 +553,7 @@
         
         function handleSharkClick() {
             // 60% de probabilidad de soltar un objeto perdido (excepto en nivel final)
-            if (Math.random() < 0.7 && clickCount < maxClicks && clickCount !== 4) {
+            if (Math.random() < 0.6 && clickCount < maxClicks && clickCount !== 4) {
                 showLostObject();
             } else if (clickCount < maxClicks) {
                 clickCount++;
