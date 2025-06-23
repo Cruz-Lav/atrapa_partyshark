@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Atrapa al Party Shark!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .instructions {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .shark {
+            position: absolute;
+            width: 200px;
+            height: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .shark:hover {
+            transform: scale(1.1);
+        }
+
+        .counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            color: #2d3436;
+            font-weight: bold;
+        }
+
+        .photo-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 80%;
+            max-height: 80%;
+            z-index: 100;
+            display: none;
+        }
+
+        .photo-display img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .photo-display video {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .photo-text {
+            font-size: 1.1rem;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .close-btn {
+            background: #e17055;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #d63031;
+        }
+
+        .final-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: #2d3436;
+            font-size: 1.3rem;
+            display: none;
+            z-index: 200;
+            max-width: 80%;
+        }
+
+        .balloons {
+            position: absolute;
+            top: -50px;
+            font-size: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 ¡Atrapa al Party Shark! 🦈</h1>
+        <p class="instructions">¡Haz clic en el tiburón para que suelte tu regalo!</p>
+    </div>
+
+    <!-- Globos decorativos -->
+    <div class="balloons" style="left: 10%; animation-delay: 0s;">🎈</div>
+    <div class="balloons" style="left: 20%; animation-delay: 1s;">🎂</div>
+    <div class="balloons" style="left: 80%; animation-delay: 2s;">🎁</div>
+    <div class="balloons" style="left: 90%; animation-delay: 0.5s;">🎉</div>
+
+    <div class="counter">
+        <div>Clicks: <span id="clickCount">0</span>/5</div>
+        <div>¡Sigue intentando!</div>
+    </div>
+
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDIwMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yMCA2MEM5IDYwIDAgNTAgMCA0MFM5IDIwIDIwIDIwSDEzMEMxNDAgMjAgMTUwIDMwIDE1MCA0MFYzMEwxODAgNDBMMTUwIDUwVjQwQzE1MCA1MCAxNDAgNjAgMTMwIDYwSDIwWiIgZmlsbD0iIzc0YjlmZiIvPgo8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMmQzNDM2Ii8+CjxwYXRoIGQ9Ik0zMCA1MEw0MCA0NUw1MCA1MEw0MCA1NVoiIGZpbGw9IiMyZDM0MzYiLz4KPHN2ZyB4PSI2MCIgeT0iMTAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIyMCI+Cjx0ZXh0IHg9IjAiIHk9IjE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNmZjcwNzUiPvCfjoY8L3RleHQ+Cjx0ZXh0IHg9IjIwIiB5PSIxNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZmRjYjZlIj7wn46IPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iMTUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzU1YTNmZiI+8J+OhzwvdGV4dD4KPHR0ZXh0IHg9IjYwIiB5PSIxNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMDBiODk0Ij7wn46JPC90ZXh0Pgo8L3N2Zz4KPC9zdmc+" 
+         class="shark" 
+         id="partyShark" 
+         alt="Party Shark"
+         style="left: 50%; top: 50%;">
+
+    <div class="photo-display" id="photoDisplay">
+        <img id="currentPhoto" src="" alt="Recuerdo especial">
+        <video id="currentVideo" controls style="display: none;">
+            <source src="" type="video/mp4">
+            Tu navegador no soporta el elemento de video.
+        </video>
+        <div class="photo-text" id="photoText"></div>
+        <button class="close-btn" onclick="closePhoto()">¡Seguir jugando!</button>
+    </div>
+
+    <div class="final-message" id="finalMessage">
+        <h2>🎉 ¡Feliz Cumpleaños! 🎂</h2>
+        <p>¡Espero que hayas disfrutado este pequeño regalo interactivo!</p>
+        <p>¡Que tengas un día maravilloso lleno de sorpresas!</p>
+        <button class="close-btn" onclick="hideFinalMessage()">❤️ ¡Gracias!</button>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        const maxClicks = 5;
+        const shark = document.getElementById('partyShark');
+        
+        // URLs de las fotos - REEMPLAZA ESTAS URLs CON TUS FOTOS REALES
+        const photos = [
+            {
+                url: 'https://via.placeholder.com/400x300/ff7675/ffffff?text=Foto+1+-+Recuerdo+Especial',
+                text: '¡Nuestro primer recuerdo juntas! 💕'
+            },
+            {
+                url: 'https://via.placeholder.com/400x300/74b9ff/ffffff?text=Foto+2+-+Momento+Divertido',
+                text: '¡Qué momento tan divertido vivimos! 😄'
+            },
+            {
+                url: 'https://via.placeholder.com/400x300/55a3ff/ffffff?text=Foto+3+-+Aventura+Juntas',
+                text: '¡Nuestras aventuras siempre son épicas! 🌟'
+            },
+            {
+                url: 'https://via.placeholder.com/400x300/00b894/ffffff?text=Foto+4+-+Amistad+Eterna',
+                text: '¡La amistad más bonita del mundo! 👯‍♀️'
+            }
+        ];
+        
+        // URL del video final - REEMPLAZA CON TU VIDEO REAL
+        const finalVideo = 'https://www.w3schools.com/html/mov_bbb.mp4'; // Placeholder video
+        
+        function moveShark() {
+            const maxX = window.innerWidth - 200;
+            const maxY = window.innerHeight - 120;
+            const newX = Math.random() * maxX;
+            const newY = Math.random() * maxY;
+            
+            shark.style.left = newX + 'px';
+            shark.style.top = newY + 'px';
+        }
+        
+        function showPhoto(photoIndex) {
+            const photoDisplay = document.getElementById('photoDisplay');
+            const currentPhoto = document.getElementById('currentPhoto');
+            const currentVideo = document.getElementById('currentVideo');
+            const photoText = document.getElementById('photoText');
+            
+            if (photoIndex < 4) {
+                // Mostrar foto
+                currentPhoto.src = photos[photoIndex].url;
+                photoText.textContent = photos[photoIndex].text;
+                currentPhoto.style.display = 'block';
+                currentVideo.style.display = 'none';
+            } else {
+                // Mostrar video final
+                currentVideo.src = finalVideo;
+                photoText.textContent = '¡Un mensaje especial para ti! 💝';
+                currentPhoto.style.display = 'none';
+                currentVideo.style.display = 'block';
+            }
+            
+            photoDisplay.style.display = 'block';
+        }
+        
+        function closePhoto() {
+            document.getElementById('photoDisplay').style.display = 'none';
+            
+            if (clickCount >= maxClicks) {
+                setTimeout(() => {
+                    document.getElementById('finalMessage').style.display = 'block';
+                }, 500);
+            } else {
+                // Mover el tiburón a una nueva posición
+                moveShark();
+            }
+        }
+        
+        function hideFinalMessage() {
+            document.getElementById('finalMessage').style.display = 'none';
+        }
+        
+        shark.addEventListener('click', function() {
+            clickCount++;
+            document.getElementById('clickCount').textContent = clickCount;
+            
+            // Mostrar la foto/video correspondiente
+            showPhoto(clickCount - 1);
+        });
+        
+        // Mover el tiburón cada 3 segundos si no se ha completado el juego
+        setInterval(() => {
+            if (clickCount < maxClicks && document.getElementById('photoDisplay').style.display !== 'block') {
+                moveShark();
+            }
+        }, 3000);
+        
+        // Posición inicial aleatoria
+        moveShark();
+    </script>
+</body>
+</html>
