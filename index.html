@@ -15,7 +15,7 @@
         body {
             margin: 0;
             padding: 20px;
-            background: url('images/background.png') center center;
+            background: url('images/background.jpg') center center;
             background-size: cover;
             background-attachment: fixed;
             background-repeat: no-repeat;
@@ -42,7 +42,7 @@
         body.gradient-overlay {
             background: 
                 linear-gradient(135deg, rgba(45, 52, 54, 0.7), rgba(0, 184, 148, 0.7), rgba(9, 132, 227, 0.7)),
-                url('images/background.png') center center;
+                url('images/background.jpg') center center;
             background-size: cover;
             background-attachment: fixed;
             animation: gradientShift 8s ease infinite;
@@ -85,7 +85,7 @@
             width: 120px;
             height: 80px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             z-index: 10;
             filter: drop-shadow(3px 3px 0px #000000);
         }
@@ -107,6 +107,18 @@
             color: #00ff41;
             font-weight: normal;
             text-shadow: none;
+            transition: all 0.3s ease;
+        }
+
+        .counter.final-level {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .score-board {
@@ -205,7 +217,7 @@
         .pixel-decorations {
             position: absolute;
             font-size: 2rem;
-            animation: pixelFloat 4s ease-in-out infinite;
+            animation: pixelFloat 3s ease-in-out infinite;
             z-index: 1;
         }
 
@@ -252,9 +264,9 @@
     <!-- Decoraciones pixel art -->
     <div class="pixel-decorations" style="left: 5%; top: 15%; animation-delay: 0s;">🎮</div>
     <div class="pixel-decorations" style="left: 15%; top: 25%; animation-delay: 1s;">⭐</div>
-    <div class="pixel-decorations" style="left: 85%; top: 20%; animation-delay: 2s;">🐡</div>
-    <div class="pixel-decorations" style="left: 90%; top: 35%; animation-delay: 0.5s;">🐠</div>
-    <div class="pixel-decorations" style="left: 10%; top: 80%; animation-delay: 1.5s;">🐟</div>
+    <div class="pixel-decorations" style="left: 85%; top: 20%; animation-delay: 2s;">💎</div>
+    <div class="pixel-decorations" style="left: 90%; top: 35%; animation-delay: 0.5s;">🔥</div>
+    <div class="pixel-decorations" style="left: 10%; top: 80%; animation-delay: 1.5s;">⚡</div>
     <div class="pixel-decorations" style="left: 80%; top: 75%; animation-delay: 3s;">💫</div>
 
     <div class="score-board">
@@ -357,6 +369,88 @@
             activeShark.style.top = newY + 'px';
         }
         
+        function fleeFromMouse(mouseX, mouseY) {
+            const activeShark = getActiveShark();
+            const sharkRect = activeShark.getBoundingClientRect();
+            const sharkCenterX = sharkRect.left + sharkRect.width / 2;
+            const sharkCenterY = sharkRect.top + sharkRect.height / 2;
+            
+            // Calcular dirección opuesta al mouse
+            const deltaX = sharkCenterX - mouseX;
+            const deltaY = sharkCenterY - mouseY;
+            
+            // Normalizar y amplificar la huida
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const fleeDistance = 150; // Distancia de huida
+            
+            if (distance > 0) {
+                const fleeX = sharkCenterX + (deltaX / distance) * fleeDistance;
+                const fleeY = sharkCenterY + (deltaY / distance) * fleeDistance;
+                
+                // Asegurar que no se salga de la pantalla
+                const maxX = window.innerWidth - 120;
+                const maxY = window.innerHeight - 80;
+                const finalX = Math.max(0, Math.min(maxX, fleeX - 60));
+                const finalY = Math.max(0, Math.min(maxY, fleeY - 40));
+                
+                activeShark.style.left = finalX + 'px';
+                activeShark.style.top = finalY + 'px';
+                activeShark.style.transform = 'scale(0.9) rotate(5deg)';
+                
+                // Volver a la normalidad después de huir
+                setTimeout(() => {
+                    activeShark.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            }
+        }
+        
+        // Detectar proximidad del mouse
+        let mouseX = 0, mouseY = 0;
+        let lastFleeTime = 0;
+        
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            const activeShark = getActiveShark();
+            const sharkRect = activeShark.getBoundingClientRect();
+            const sharkCenterX = sharkRect.left + sharkRect.width / 2;
+            const sharkCenterY = sharkRect.top + sharkRect.height / 2;
+            
+            // Calcular distancia entre mouse y tiburón
+            const distance = Math.sqrt(
+                Math.pow(mouseX - sharkCenterX, 2) + 
+                Math.pow(mouseY - sharkCenterY, 2)
+            );
+            
+            // Configuración de dificultad según el nivel
+            let proximityThreshold, fleeChance, cooldownTime;
+            
+            if (clickCount === 4) {
+                // NIVEL FINAL - SUPER DESAFIANTE
+                proximityThreshold = 150; // Detecta desde más lejos
+                fleeChance = 0.8; // 80% de probabilidad de huir
+                cooldownTime = 800; // Puede huir cada 0.8 segundos
+            } else {
+                // Niveles normales
+                proximityThreshold = 100;
+                fleeChance = 0.4; // 40% de probabilidad
+                cooldownTime = 2000; // Cada 2 segundos
+            }
+            
+            const currentTime = Date.now();
+            
+            if (distance < proximityThreshold && 
+                currentTime - lastFleeTime > cooldownTime && 
+                Math.random() < fleeChance &&
+                document.getElementById('photoDisplay').style.display !== 'block') {
+                
+                fleeFromMouse(mouseX, mouseY);
+                lastFleeTime = currentTime;
+                updateScore(clickCount === 4 ? 100 : 25); // Más puntos en nivel final
+            }
+        });
+        
         function createFallingObject(emoji) {
             const activeShark = getActiveShark();
             const fallingObj = document.createElement('div');
@@ -458,13 +552,26 @@
         }
         
         function handleSharkClick() {
-            // 30% de probabilidad de soltar un objeto perdido
-            if (Math.random() < 0.3 && clickCount < maxClicks) {
+            // 60% de probabilidad de soltar un objeto perdido (excepto en nivel final)
+            if (Math.random() < 0.7 && clickCount < maxClicks && clickCount !== 4) {
                 showLostObject();
             } else if (clickCount < maxClicks) {
                 clickCount++;
                 document.getElementById('clickCount').textContent = clickCount;
-                updateScore(100);
+                updateScore(clickCount === 5 ? 500 : 100); // Mega bonus por el video final
+                
+                // Mensaje especial para el nivel final
+                if (clickCount === 5) {
+                    // Cambiar texto del contador para celebrar
+                    document.querySelector('.counter').innerHTML = `
+                        <div style="color: #ff6b6b;">¡NIVEL COMPLETADO!</div>
+                        <div style="color: #00ff41;">¡VIDEO DESBLOQUEADO!</div>
+                    `;
+                }
+                
+                // Actualizar velocidad del tiburón según el nuevo nivel
+                startSharkMovement();
+                
                 showPhoto(clickCount - 1);
             }
         }
@@ -473,15 +580,36 @@
         shark.addEventListener('click', handleSharkClick);
         sharkFallback.addEventListener('click', handleSharkClick);
         
-        // Mover el tiburón cada 2.5 segundos
-        setInterval(() => {
-            if (clickCount < maxClicks && document.getElementById('photoDisplay').style.display !== 'block') {
-                moveShark();
-            }
-        }, 2500);
+        // Variables para controlar la velocidad del tiburón
+        let moveInterval;
         
-        // Posición inicial aleatoria
+        function startSharkMovement() {
+            // Limpiar intervalo anterior si existe
+            if (moveInterval) {
+                clearInterval(moveInterval);
+            }
+            
+            // Determinar velocidad según el nivel
+            let speed;
+            if (clickCount === 4) {
+                speed = 1200; // NIVEL FINAL: cada 1.2 segundos (súper rápido)
+            } else if (clickCount >= 2) {
+                speed = 1500; // Niveles 3-4: cada 1.5 segundos
+            } else {
+                speed = 1800; // Niveles 1-2: cada 1.8 segundos
+            }
+            
+            // Crear nuevo intervalo con la velocidad correcta
+            moveInterval = setInterval(() => {
+                if (clickCount < maxClicks && document.getElementById('photoDisplay').style.display !== 'block') {
+                    moveShark();
+                }
+            }, speed);
+        }
+        
+        // Inicializar posición y movimiento del tiburón
         moveShark();
+        startSharkMovement();
     </script>
 </body>
 </html>
