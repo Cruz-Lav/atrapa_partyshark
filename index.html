@@ -276,6 +276,7 @@
 
     <div class="counter">
         <div>FOTOS: <span id="clickCount">0</span>/5</div>
+        <div>ESPECIALES: <span id="specialCount">0</span>/6</div>
         <div>OBJETOS: <span id="objectCount">0</span></div>
     </div>
 
@@ -312,6 +313,7 @@
     <script>
         let clickCount = 0;
         let objectCount = 0;
+        let specialCount = 0;
         let score = 0;
         const maxClicks = 5;
         const shark = document.getElementById('partyShark');
@@ -332,38 +334,38 @@
         const specialPhotos = [
             {
                 url: 'images/special1.jpg',
-                text: ' Mi flaca 💋',
-                found: false
+                text: 'Mi flaca 💋',
+                found: false,
                 type: 'image'
             },
             {
                 url: 'images/special2.jpg',
                 text: 'Has encontrado la foto de un michin',
-                found: false
+                found: false,
                 type: 'image'
             },
             {
                 url: 'images/special3.jpg',
                 text: 'Has encontrado la foto de un tal Jose Javier',
-                found: false
+                found: false,
                 type: 'image'
             },
             {
                 url: 'images/special4.jpg',
                 text: 'Lostmedia',
-                found: false
+                found: false,
                 type: 'image'
             },
             {
                 url: 'images/special5.jpg',
                 text: 'De donde salio eso??',
-                found: false
+                found: false,
                 type: 'image'
             },
             {
                 url: 'images/special6.mp4',
                 text: 'Haz encontrado Sherks premium. Si los Sherks dan buena suerte ahora imaginate unos sherks premium',
-                found: false
+                found: false,
                 type: 'video'
             }
         ];
@@ -376,7 +378,8 @@
             },
             {
                 url: 'images/foto2.jpg',
-                text: 'Aunque nos conocimos en el cole, nuestra amistad florecio en virtual asi que no podia faltar las screens. Recuerdo nuestras reus de fin de semana para ver TR, hacer chismecito y scrollear shitpost en pinterest a las 2:00 am. No sabes cuan bien me hacia hablar contigo, me hacias sentir que no estaba sola.            },
+                text: 'Aunque nos conocimos en el cole, nuestra amistad florecio en virtual asi que no podia faltar las screens. Recuerdo nuestras reus de fin de semana para ver TR, hacer chismecito y scrollear shitpost en pinterest a las 2:00 am. No sabes cuan bien me hacia hablar contigo, me hacias sentir que no estaba sola.'
+            },
             {
                 url: 'images/foto3.jpg',
                 text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. No sabes cuan'
@@ -562,6 +565,8 @@
             const objectText = document.getElementById('objectText');
 
             photoText.textContent = availablePhoto.text;
+            photoText.style.display = 'block';
+            objectText.style.display = 'none';
             
             if (availablePhoto.type === 'video') {
                 currentVideo.src = availablePhoto.url;
@@ -571,22 +576,12 @@
                 currentPhoto.src = availablePhoto.url;
                 currentVideo.style.display = 'none';
                 currentPhoto.style.display = 'block';
+                
+                // Error handling para fotos especiales
+                currentPhoto.onerror = function() {
+                    this.src = `https://via.placeholder.com/400x300/6c5ce7/ffffff?text=FOTO+ESPECIAL+-+Imagen+no+encontrada`;
+                };
             }
-
-            
-
-
- 
-
-            
-            
-            
-            
-            
-            // Error handling para fotos especiales
-            currentPhoto.onerror = function() {
-                this.src = `https://via.placeholder.com/400x300/6c5ce7/ffffff?text=FOTO+ESPECIAL+-+Imagen+no+encontrada`;
-            };
             
             // Efecto visual especial
             createFallingObject('📸');
@@ -643,8 +638,18 @@
         }
         
         function handleSharkClick() {
-            // 60% de probabilidad de soltar un objeto perdido (excepto en nivel final)
-            if (Math.random() < 0.6 && clickCount < maxClicks && clickCount !== 4) {
+            // Determinar qué tipo de recompensa dar
+            const randomValue = Math.random();
+            
+            // 25% probabilidad de foto especial (si quedan disponibles)
+            // 35% probabilidad de objeto perdido  
+            // 40% probabilidad de foto principal
+            
+            const hasSpecialPhotos = specialPhotos.some(photo => !photo.found);
+            
+            if (randomValue < 0.25 && hasSpecialPhotos && clickCount < maxClicks && clickCount !== 4) {
+                showSpecialPhoto();
+            } else if (randomValue < 0.6 && clickCount < maxClicks && clickCount !== 4) {
                 showLostObject();
             } else if (clickCount < maxClicks) {
                 clickCount++;
