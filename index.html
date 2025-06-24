@@ -374,7 +374,7 @@
         const photos = [
             {
                 url: 'images/foto1.jpg',
-                text: 'Nuestras fotos de la secundaria. Las pocas que pude tomar con mi poderocisimo Samsung J1 mini Prime xd.'
+                text: 'Nuestras fotos de la secundaria. Las pocas que pude tomar con mi poderosisimo Samsung J1 mini Prime xd.'
             },
             {
                 url: 'images/foto2.jpg',
@@ -382,7 +382,7 @@
             },
             {
                 url: 'images/foto3.jpg',
-                text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. Estoy espernado la siguiente edicion con ansias.'
+                text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. Espero con ansias la cuarta edición.'
             },
             {
                 url: 'images/foto4.jpg',
@@ -641,24 +641,20 @@
         }
         
         function handleSharkClick() {
-            // Solo permitir fotos especiales y objetos si no estamos en el nivel final (clickCount !== 4)
-            if (clickCount < maxClicks && clickCount !== 4) {
-                const randomValue = Math.random();
-                const hasSpecialPhotos = specialPhotos.some(photo => !photo.found);
-                
-                // 40% probabilidad de foto especial (si quedan disponibles)
-                // 60% probabilidad de objeto perdido
-                if (randomValue < 0.4 && hasSpecialPhotos) {
-                    showSpecialPhoto();
-                    return; // Salir aquí para no continuar con las fotos principales
-                } else {
-                    showLostObject();
-                    return; // Salir aquí para no continuar con las fotos principales
-                }
-            }
+            // Determinar qué tipo de recompensa dar
+            const randomValue = Math.random();
             
-            // Solo llegar aquí si es el nivel final o si necesitamos una foto principal
-            if (clickCount < maxClicks) {
+            // 25% probabilidad de foto especial (si quedan disponibles)
+            // 35% probabilidad de objeto perdido  
+            // 40% probabilidad de foto principal
+            
+            const hasSpecialPhotos = specialPhotos.some(photo => !photo.found);
+            
+            if (randomValue < 0.25 && hasSpecialPhotos && clickCount < maxClicks && clickCount !== 4) {
+                showSpecialPhoto();
+            } else if (randomValue < 0.6 && clickCount < maxClicks && clickCount !== 4) {
+                showLostObject();
+            } else if (clickCount < maxClicks) {
                 clickCount++;
                 document.getElementById('clickCount').textContent = clickCount;
                 updateScore(clickCount === 5 ? 500 : 100); // Mega bonus por el video final
