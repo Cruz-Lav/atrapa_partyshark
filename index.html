@@ -328,6 +328,45 @@
             { emoji: '📖', name: 'manwha BL' },
             { emoji: '🐈', name: 'michi' }
         ];
+
+        const specialPhotos = [
+            {
+                url: 'images/special1.jpg',
+                text: ' Mi flaca 💋',
+                found: false
+                type: 'image'
+            },
+            {
+                url: 'images/special2.jpg',
+                text: 'Has encontrado la foto de un michin',
+                found: false
+                type: 'image'
+            },
+            {
+                url: 'images/special3.jpg',
+                text: 'Has encontrado la foto de un tal Jose Javier',
+                found: false
+                type: 'image'
+            },
+            {
+                url: 'images/special4.jpg',
+                text: 'Lostmedia',
+                found: false
+                type: 'image'
+            },
+            {
+                url: 'images/special5.jpg',
+                text: 'De donde salio eso??',
+                found: false
+                type: 'image'
+            },
+            {
+                url: 'images/special6.mp4',
+                text: 'Haz encontrado Sherks premium. Si los Sherks dan buena suerte ahora imaginate unos sherks premium',
+                found: false
+                type: 'video'
+            }
+        ];
         
         // Configuración de fotos - REEMPLAZA con las rutas de tu carpeta images/
         const photos = [
@@ -499,6 +538,61 @@
                     photoText.textContent = '¡VIDEO NO ENCONTRADO! Agrega tu video en images/video-final.mp4';
                 };
             }
+            
+            photoDisplay.style.display = 'block';
+        }
+
+        function showSpecialPhoto() {
+            // Buscar la primera foto especial que no se haya encontrado
+            const availablePhoto = specialPhotos.find(photo => !photo.found);
+            
+            if (!availablePhoto) {
+                // Si no hay fotos especiales disponibles, mostrar objeto normal
+                showLostObject();
+                return;
+            }
+            
+            // Marcar como encontrada
+            availablePhoto.found = true;
+            
+            const photoDisplay = document.getElementById('photoDisplay');
+            const currentPhoto = document.getElementById('currentPhoto');
+            const currentVideo = document.getElementById('currentVideo');
+            const photoText = document.getElementById('photoText');
+            const objectText = document.getElementById('objectText');
+
+            photoText.textContent = availablePhoto.text;
+            
+            if (availablePhoto.type === 'video') {
+                currentVideo.src = availablePhoto.url;
+                currentVideo.style.display = 'block';
+                currentPhoto.style.display = 'none';
+            } else {
+                currentPhoto.src = availablePhoto.url;
+                currentVideo.style.display = 'none';
+                currentPhoto.style.display = 'block';
+            }
+
+            
+
+
+ 
+
+            
+            
+            
+            
+            
+            // Error handling para fotos especiales
+            currentPhoto.onerror = function() {
+                this.src = `https://via.placeholder.com/400x300/6c5ce7/ffffff?text=FOTO+ESPECIAL+-+Imagen+no+encontrada`;
+            };
+            
+            // Efecto visual especial
+            createFallingObject('📸');
+            specialCount++;
+            updateScore(150); // Más puntos por foto especial
+            document.getElementById('specialCount').textContent = specialCount;
             
             photoDisplay.style.display = 'block';
         }
