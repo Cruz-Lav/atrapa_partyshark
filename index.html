@@ -275,7 +275,7 @@
     </div>
 
     <div class="counter">
-        <div>FOTOS: <span id="photosFound">0</span>/<span id="totalPhotos">11</span></div>
+        <div>FOTOS: <span id="photosFound">0</span>/<span id="totalPhotos">10</span></div>
         <div>OBJETOS: <span id="objectCount">0</span></div>
     </div>
 
@@ -335,7 +335,7 @@
             { emoji: '🐈', name: 'michi' }
         ];
 
-        // TODAS LAS FOTOS EN UN SOLO CONJUNTO
+        // TODAS LAS FOTOS (SIN EL VIDEO FINAL)
         const allPhotos = [
             // Fotos principales del cumpleaños
             {
@@ -408,16 +408,14 @@
                 found: false,
                 type: 'video',
                 isSpecial: true
-            },
-            // Video final
-            {
-                url: 'FINAL_VIDEO',
-                text: '¡UN MENSAJE ESPECIAL PARA TI! 💝',
-                found: false,
-                type: 'video_link',
-                isSpecial: false
             }
         ];
+        
+        // VIDEO FINAL ESPECIAL (solo aparece al completar todo)
+        const finalVideoData = {
+            text: '🎉 ¡FELICIDADES! 🎉<br>¡HAS ENCONTRADO TODAS LAS FOTOS!<br><br>¡UN MENSAJE ESPECIAL PARA TI! 💝',
+            found: false
+        };
         
         function getActiveShark() {
             return shark.style.display === 'none' ? sharkFallback : shark;
@@ -537,14 +535,57 @@
             document.getElementById('score').textContent = score;
         }
         
+        function showFinalVideo() {
+            const photoDisplay = document.getElementById('photoDisplay');
+            const currentPhoto = document.getElementById('currentPhoto');
+            const currentVideo = document.getElementById('currentVideo');
+            const photoText = document.getElementById('photoText');
+            const objectText = document.getElementById('objectText');
+
+            // Mostrar el video final especial
+            currentPhoto.style.display = 'none';
+            currentVideo.style.display = 'none';
+            photoText.style.display = 'block';
+            objectText.style.display = 'none';
+            
+            photoText.innerHTML = `
+                <div style="font-size: 1rem; margin-bottom: 20px;">${finalVideoData.text}</div>
+                <div style="font-size: 3rem; margin: 20px 0;">🎬</div>
+                <a href="${finalVideoLink}" target="_blank" 
+                   style="color: #fdcb6e; text-decoration: underline; font-size: 0.9rem;">
+                   ¡HAZ CLIC AQUÍ PARA VER EL VIDEO FINAL!
+                </a>
+                <div style="margin-top: 15px; font-size: 0.6rem; color: #74b9ff;">
+                   (Se abrirá en una nueva pestaña)
+                </div>
+            `;
+            
+            // Marcar video final como visto
+            finalVideoData.found = true;
+            
+            // Efectos especiales para el video final
+            createFallingObject('🎉');
+            createFallingObject('🎬');
+            createFallingObject('💝');
+            updateScore(1000); // ¡MEGA BONUS!
+            
+            photoDisplay.style.display = 'block';
+        }
+        
         function showRandomPhoto() {
             // Buscar fotos que no se hayan encontrado
             const availablePhotos = allPhotos.filter(photo => !photo.found);
             
             if (availablePhotos.length === 0) {
-                // No hay más fotos, mostrar objeto
-                showLostObject();
-                return;
+                // ¡TODAS LAS FOTOS ENCONTRADAS! Mostrar video final
+                if (!finalVideoData.found) {
+                    showFinalVideo();
+                    return;
+                } else {
+                    // Ya vio el video final, solo objetos
+                    showLostObject();
+                    return;
+                }
             }
             
             // Seleccionar una foto aleatoria de las disponibles
@@ -568,21 +609,6 @@
                 currentVideo.src = selectedPhoto.url;
                 currentVideo.style.display = 'block';
                 currentPhoto.style.display = 'none';
-            } else if (selectedPhoto.type === 'video_link') {
-                // Video final con enlace
-                currentPhoto.style.display = 'none';
-                currentVideo.style.display = 'none';
-                photoText.innerHTML = `
-                    <div style="font-size: 1rem; margin-bottom: 20px;">${selectedPhoto.text}</div>
-                    <div style="font-size: 2rem; margin: 20px 0;">🎬</div>
-                    <a href="${finalVideoLink}" target="_blank" 
-                       style="color: #fdcb6e; text-decoration: underline; font-size: 0.8rem;">
-                       ¡HAZ CLIC AQUÍ PARA VER EL VIDEO!
-                    </a>
-                    <div style="margin-top: 15px; font-size: 0.6rem; color: #74b9ff;">
-                       (Se abrirá en una nueva pestaña)
-                    </div>
-                `;
             } else {
                 // Imagen normal
                 currentPhoto.src = selectedPhoto.url;
@@ -608,11 +634,13 @@
             const photosFound = allPhotos.filter(photo => photo.found).length;
             document.getElementById('photosFound').textContent = photosFound;
             
-            // Verificar si el juego terminó
-            if (photosFound >= allPhotos.length) {
-                setTimeout(() => {
-                    document.getElementById('finalMessage').style.display = 'block';
-                }, 500);
+            // Verificar si se encontraron todas las fotos (pero aún no el video final)
+            if (photosFound >= allPhotos.length && !finalVideoData.found) {
+                // Cambiar el mensaje del contador para indicar que falta el video final
+                document.querySelector('.counter').innerHTML = `
+                    <div style="color: #ff6b6b;">¡TODAS LAS FOTOS!</div>
+                    <div style="color: #fdcb6e;">¡BUSCA EL VIDEO FINAL!</div>
+                `;
             }
             
             photoDisplay.style.display = 'block';
@@ -650,9 +678,9 @@
             document.getElementById('photoText').style.display = 'block';
             document.getElementById('objectText').style.display = 'none';
             
-            // Verificar si todas las fotos han sido encontradas
+            // Verificar si el juego terminó completamente (todas las fotos + video final)
             const photosFound = allPhotos.filter(photo => photo.found).length;
-            if (photosFound >= allPhotos.length) {
+            if (photosFound >= allPhotos.length && finalVideoData.found) {
                 setTimeout(() => {
                     document.getElementById('finalMessage').style.display = 'block';
                 }, 500);
@@ -669,13 +697,24 @@
             const randomValue = Math.random();
             const availablePhotos = allPhotos.filter(photo => !photo.found);
             
-            // Si no quedan fotos, solo mostrar objetos
-            if (availablePhotos.length === 0) {
+            // Si todas las fotos fueron encontradas pero no el video final
+            if (availablePhotos.length === 0 && !finalVideoData.found) {
+                // 85% probabilidad de video final, 15% objeto
+                if (randomValue < 0.85) {
+                    showFinalVideo();
+                } else {
+                    showLostObject();
+                }
+                return;
+            }
+            
+            // Si ya no queda nada (todo completo), solo mostrar objetos
+            if (availablePhotos.length === 0 && finalVideoData.found) {
                 showLostObject();
                 return;
             }
             
-            // 70% probabilidad de foto, 30% probabilidad de objeto
+            // Juego normal: 70% probabilidad de foto, 30% probabilidad de objeto
             if (randomValue < 0.7) {
                 showRandomPhoto();
             } else {
@@ -686,7 +725,7 @@
         // Event listeners para ambos tiburones
         shark.addEventListener('click', handleSharkClick);
         sharkFallback.addEventListener('click', handleSharkClick);
-         
+        
         function startSharkMovement() {
             // Limpiar intervalo anterior si existe
             if (moveInterval) {
@@ -705,7 +744,7 @@
         }
         
         // Inicializar el juego
-        document.getElementById('totalPhotos').textContent = allPhotos.length;
+        document.getElementById('totalPhotos').textContent = allPhotos.length; // 10 fotos
         moveShark();
         startSharkMovement();
     </script>
