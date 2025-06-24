@@ -364,7 +364,7 @@
             },
             {
                 url: 'images/special6.mp4',
-                text: 'Haz encontrado Sherks premium. Si los Sherks dan buena suerte ahora imaginate unos Sherks premium',
+                text: 'Haz encontrado Sherks premium. Si los Sherks dan buena suerte ahora imaginate unos sherks premium',
                 found: false,
                 type: 'video'
             }
@@ -382,7 +382,7 @@
             },
             {
                 url: 'images/foto3.jpg',
-                text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. No sabes cuan'
+                text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. Estoy espernado la siguiente edicion con ansias.'
             },
             {
                 url: 'images/foto4.jpg',
@@ -390,7 +390,7 @@
             }
         ];
         
-        // URL del video final - REEMPLAZA con la ruta de tu video en la carpeta images/
+        // URL del video final - REEMPLAZA con tu link de Google Drive
         const finalVideoLink = 'https://drive.google.com/file/d/12OyZ9r_g5509rpjb5tMUBWWiNmbehej9/view?usp=drive_link';
         
         function getActiveShark() {
@@ -529,17 +529,20 @@
                     this.src = `https://via.placeholder.com/400x300/ff7675/ffffff?text=FOTO+${photoIndex + 1}+-+Imagen+no+encontrada`;
                 };
             } else {
-                // Mostrar video final
-                currentVideo.src = finalVideo;
-                photoText.textContent = '¡UN MENSAJE ESPECIAL PARA TI! 💝';
+                // Mostrar enlace al video final
                 currentPhoto.style.display = 'none';
-                currentVideo.style.display = 'block';
-                
-                // Error handling para video
-                currentVideo.onerror = function() {
-                    this.style.display = 'none';
-                    photoText.textContent = '¡VIDEO NO ENCONTRADO! Agrega tu video en images/video-final.mp4';
-                };
+                currentVideo.style.display = 'none';
+                photoText.innerHTML = `
+                    <div style="font-size: 1rem; margin-bottom: 20px;">¡UN MENSAJE ESPECIAL PARA TI! 💝</div>
+                    <div style="font-size: 2rem; margin: 20px 0;">🎬</div>
+                    <a href="${finalVideoLink}" target="_blank" 
+                       style="color: #fdcb6e; text-decoration: underline; font-size: 0.8rem;">
+                       ¡HAZ CLIC AQUÍ PARA VER EL VIDEO!
+                    </a>
+                    <div style="margin-top: 15px; font-size: 0.6rem; color: #74b9ff;">
+                       (Se abrirá en una nueva pestaña)
+                    </div>
+                `;
             }
             
             photoDisplay.style.display = 'block';
@@ -638,20 +641,24 @@
         }
         
         function handleSharkClick() {
-            // Determinar qué tipo de recompensa dar
-            const randomValue = Math.random();
+            // Solo permitir fotos especiales y objetos si no estamos en el nivel final (clickCount !== 4)
+            if (clickCount < maxClicks && clickCount !== 4) {
+                const randomValue = Math.random();
+                const hasSpecialPhotos = specialPhotos.some(photo => !photo.found);
+                
+                // 40% probabilidad de foto especial (si quedan disponibles)
+                // 60% probabilidad de objeto perdido
+                if (randomValue < 0.4 && hasSpecialPhotos) {
+                    showSpecialPhoto();
+                    return; // Salir aquí para no continuar con las fotos principales
+                } else {
+                    showLostObject();
+                    return; // Salir aquí para no continuar con las fotos principales
+                }
+            }
             
-            // 25% probabilidad de foto especial (si quedan disponibles)
-            // 35% probabilidad de objeto perdido  
-            // 40% probabilidad de foto principal
-            
-            const hasSpecialPhotos = specialPhotos.some(photo => !photo.found);
-            
-            if (randomValue < 0.25 && hasSpecialPhotos && clickCount < maxClicks && clickCount !== 4) {
-                showSpecialPhoto();
-            } else if (randomValue < 0.6 && clickCount < maxClicks && clickCount !== 4) {
-                showLostObject();
-            } else if (clickCount < maxClicks) {
+            // Solo llegar aquí si es el nivel final o si necesitamos una foto principal
+            if (clickCount < maxClicks) {
                 clickCount++;
                 document.getElementById('clickCount').textContent = clickCount;
                 updateScore(clickCount === 5 ? 500 : 100); // Mega bonus por el video final
