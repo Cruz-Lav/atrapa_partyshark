@@ -266,7 +266,7 @@
     <div class="pixel-decorations" style="left: 15%; top: 25%; animation-delay: 1s;">⭐</div>
     <div class="pixel-decorations" style="left: 85%; top: 20%; animation-delay: 2s;">💎</div>
     <div class="pixel-decorations" style="left: 90%; top: 35%; animation-delay: 0.5s;">🔥</div>
-    <div class="pixel-decorations" style="left: 10%; top: 80%; animation-delay: 1.5s;">🐟</div>
+    <div class="pixel-decorations" style="left: 10%; top: 80%; animation-delay: 1.5s;">⚡</div>
     <div class="pixel-decorations" style="left: 80%; top: 75%; animation-delay: 3s;">💫</div>
 
     <div class="score-board">
@@ -275,8 +275,7 @@
     </div>
 
     <div class="counter">
-        <div>FOTOS: <span id="clickCount">0</span>/5</div>
-        <div>ESPECIALES: <span id="specialCount">0</span>/6</div>
+        <div>FOTOS: <span id="photosFound">0</span>/<span id="totalPhotos">11</span></div>
         <div>OBJETOS: <span id="objectCount">0</span></div>
     </div>
 
@@ -311,13 +310,18 @@
     </div>
 
     <script>
-        let clickCount = 0;
+        // Variables globales
         let objectCount = 0;
-        let specialCount = 0;
         let score = 0;
-        const maxClicks = 5;
+        let moveInterval;
+        let mouseX = 0, mouseY = 0;
+        let lastFleeTime = 0;
+        
         const shark = document.getElementById('partyShark');
         const sharkFallback = document.getElementById('sharkFallback');
+        
+        // URL del video final - REEMPLAZA con tu link de Google Drive
+        const finalVideoLink = 'https://drive.google.com/file/d/12OyZ9r_g5509rpjb5tMUBWWiNmbehej9/view?usp=drive_link';
         
         // Lista de objetos perdidos que puede soltar el tiburón
         const lostObjects = [
@@ -331,67 +335,89 @@
             { emoji: '🐈', name: 'michi' }
         ];
 
-        const specialPhotos = [
+        // TODAS LAS FOTOS EN UN SOLO CONJUNTO
+        const allPhotos = [
+            // Fotos principales del cumpleaños
+            {
+                url: 'images/foto1.jpg',
+                text: 'Nuestras fotos de la secundaria. Las pocas que pude tomar con mi poderosisimo Samsung J1 mini Prime xd.',
+                found: false,
+                type: 'image',
+                isSpecial: false
+            },
+            {
+                url: 'images/foto2.jpg',
+                text: 'Aunque nos conocimos en el cole, nuestra amistad florecio en virtual asi que no podia faltar las screens. Recuerdo nuestras reus de fin de semana para ver TR, hacer chismecito y scrollear shitpost en pinterest a las 2:00 am. No sabes cuan bien me hacia hablar contigo, me hacias sentir que no estaba sola.',
+                found: false,
+                type: 'image',
+                isSpecial: false
+            },
+            {
+                url: 'images/foto3.jpg',
+                text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. Espero con ansias la cuarta edición.',
+                found: false,
+                type: 'image',
+                isSpecial: false
+            },
+            {
+                url: 'images/foto4.jpg',
+                text: 'Haberme mudado a la Lema. Hizo que no pudieramos vernos de forma presencial pero siempre estuvimos acompañandonos con llamaditas., mensajitos y robloxeadas. Sabes... creo que eres de las pocas personas que han elegido quedarse conmigo a pesar de la distancia siempre estuviste ahi para escucharme, aconsejarme y hacerme reir a pesar de que tal ves tu tampoco la estavas pasando bien. Siempre fuiste mi refugio y te agardezco por eso <3 ',
+                found: false,
+                type: 'image',
+                isSpecial: false
+            },
+            // Fotos especiales
             {
                 url: 'images/special1.jpg',
                 text: 'Mi flaca 💋',
                 found: false,
-                type: 'image'
+                type: 'image',
+                isSpecial: true
             },
             {
                 url: 'images/special2.jpg',
                 text: 'Has encontrado la foto de un michin',
                 found: false,
-                type: 'image'
+                type: 'image',
+                isSpecial: true
             },
             {
                 url: 'images/special3.jpg',
                 text: 'Has encontrado la foto de un tal Jose Javier',
                 found: false,
-                type: 'image'
+                type: 'image',
+                isSpecial: true
             },
             {
                 url: 'images/special4.jpg',
                 text: 'Lostmedia',
                 found: false,
-                type: 'image'
+                type: 'image',
+                isSpecial: true
             },
             {
                 url: 'images/special5.jpg',
                 text: 'De donde salio eso??',
                 found: false,
-                type: 'image'
+                type: 'image',
+                isSpecial: true
             },
             {
                 url: 'images/special6.mp4',
                 text: 'Haz encontrado Sherks premium. Si los Sherks dan buena suerte ahora imaginate unos sherks premium',
                 found: false,
-                type: 'video'
+                type: 'video',
+                isSpecial: true
+            },
+            // Video final
+            {
+                url: 'FINAL_VIDEO',
+                text: '¡UN MENSAJE ESPECIAL PARA TI! 💝',
+                found: false,
+                type: 'video_link',
+                isSpecial: false
             }
         ];
-        
-        // Configuración de fotos - REEMPLAZA con las rutas de tu carpeta images/
-        const photos = [
-            {
-                url: 'images/foto1.jpg',
-                text: 'Nuestras fotos de la secundaria. Las pocas que pude tomar con mi poderocisimo Samsung J1 mini Prime xd.'
-            },
-            {
-                url: 'images/foto2.jpg',
-                text: 'Aunque nos conocimos en el cole, nuestra amistad florecio en virtual asi que no podia faltar las screens. Recuerdo nuestras reus de fin de semana para ver TR, hacer chismecito y scrollear shitpost en pinterest a las 2:00 am. No sabes cuan bien me hacia hablar contigo, me hacias sentir que no estaba sola.'
-            },
-            {
-                url: 'images/foto3.jpg',
-                text: 'Tambien hubo picnics, obvis. Tres ediciones de Picnic. Cada una con su respectiva invitacion de canva. Aunque la ultima vez fue un salchipapon al frente del Tupac. No sabes cuan'
-            },
-            {
-                url: 'images/foto4.jpg',
-                text: 'Haberme mudado a la Lema. Hizo que no pudieramos vernos de forma presencial pero siempre estuvimos acompañandonos con llamaditas., mensajitos y robloxeadas. Sabes... creo que eres de las pocas personas que han elegido quedarse conmigo a pesar de la distancia siempre estuviste ahi para escucharme, aconsejarme y hacerme reir a pesar de que tal ves tu tampoco la estavas pasando bien. Siempre fuiste mi refugio y te agardezco por eso <3 '
-            }
-        ];
-        
-        // URL del video final - REEMPLAZA con tu link de Google Drive
-        const finalVideoLink = 'https://drive.google.com/file/d/TU_ID_DEL_VIDEO/view?usp=sharing';
         
         function getActiveShark() {
             return shark.style.display === 'none' ? sharkFallback : shark;
@@ -444,9 +470,6 @@
         }
         
         // Detectar proximidad del mouse
-        let mouseX = 0, mouseY = 0;
-        let lastFleeTime = 0;
-        
         document.addEventListener('mousemove', function(e) {
             mouseX = e.clientX;
             mouseY = e.clientY;
@@ -462,10 +485,13 @@
                 Math.pow(mouseY - sharkCenterY, 2)
             );
             
-            // Configuración de dificultad según el nivel
+            // Configuración de huida - más agresiva hacia el final
+            const photosFound = allPhotos.filter(photo => photo.found).length;
+            const photosRemaining = allPhotos.length - photosFound;
+            
             let proximityThreshold, fleeChance, cooldownTime;
             
-            if (clickCount === 4) {
+            if (photosRemaining <= 2) {
                 // NIVEL FINAL - SUPER DESAFIANTE
                 proximityThreshold = 150; // Detecta desde más lejos
                 fleeChance = 0.8; // 80% de probabilidad de huir
@@ -486,7 +512,7 @@
                 
                 fleeFromMouse(mouseX, mouseY);
                 lastFleeTime = currentTime;
-                updateScore(clickCount === 4 ? 100 : 25); // Más puntos en nivel final
+                updateScore(photosRemaining <= 2 ? 100 : 25); // Más puntos cerca del final
             }
         });
         
@@ -511,29 +537,43 @@
             document.getElementById('score').textContent = score;
         }
         
-        function showPhoto(photoIndex) {
+        function showRandomPhoto() {
+            // Buscar fotos que no se hayan encontrado
+            const availablePhotos = allPhotos.filter(photo => !photo.found);
+            
+            if (availablePhotos.length === 0) {
+                // No hay más fotos, mostrar objeto
+                showLostObject();
+                return;
+            }
+            
+            // Seleccionar una foto aleatoria de las disponibles
+            const randomIndex = Math.floor(Math.random() * availablePhotos.length);
+            const selectedPhoto = availablePhotos[randomIndex];
+            
+            // Marcar como encontrada
+            selectedPhoto.found = true;
+            
             const photoDisplay = document.getElementById('photoDisplay');
             const currentPhoto = document.getElementById('currentPhoto');
             const currentVideo = document.getElementById('currentVideo');
             const photoText = document.getElementById('photoText');
+            const objectText = document.getElementById('objectText');
+
+            photoText.textContent = selectedPhoto.text;
+            photoText.style.display = 'block';
+            objectText.style.display = 'none';
             
-            if (photoIndex < 4) {
-                // Mostrar foto
-                currentPhoto.src = photos[photoIndex].url;
-                photoText.textContent = photos[photoIndex].text;
-                currentPhoto.style.display = 'block';
-                currentVideo.style.display = 'none';
-                
-                // Error handling para fotos
-                currentPhoto.onerror = function() {
-                    this.src = `https://via.placeholder.com/400x300/ff7675/ffffff?text=FOTO+${photoIndex + 1}+-+Imagen+no+encontrada`;
-                };
-            } else {
-                // Mostrar enlace al video final
+            if (selectedPhoto.type === 'video') {
+                currentVideo.src = selectedPhoto.url;
+                currentVideo.style.display = 'block';
+                currentPhoto.style.display = 'none';
+            } else if (selectedPhoto.type === 'video_link') {
+                // Video final con enlace
                 currentPhoto.style.display = 'none';
                 currentVideo.style.display = 'none';
                 photoText.innerHTML = `
-                    <div style="font-size: 1rem; margin-bottom: 20px;">¡UN MENSAJE ESPECIAL PARA TI! 💝</div>
+                    <div style="font-size: 1rem; margin-bottom: 20px;">${selectedPhoto.text}</div>
                     <div style="font-size: 2rem; margin: 20px 0;">🎬</div>
                     <a href="${finalVideoLink}" target="_blank" 
                        style="color: #fdcb6e; text-decoration: underline; font-size: 0.8rem;">
@@ -543,54 +583,37 @@
                        (Se abrirá en una nueva pestaña)
                     </div>
                 `;
-            }
-            
-            photoDisplay.style.display = 'block';
-        }
-
-        function showSpecialPhoto() {
-            // Buscar la primera foto especial que no se haya encontrado
-            const availablePhoto = specialPhotos.find(photo => !photo.found);
-            
-            if (!availablePhoto) {
-                // Si no hay fotos especiales disponibles, mostrar objeto normal
-                showLostObject();
-                return;
-            }
-            
-            // Marcar como encontrada
-            availablePhoto.found = true;
-            
-            const photoDisplay = document.getElementById('photoDisplay');
-            const currentPhoto = document.getElementById('currentPhoto');
-            const currentVideo = document.getElementById('currentVideo');
-            const photoText = document.getElementById('photoText');
-            const objectText = document.getElementById('objectText');
-
-            photoText.textContent = availablePhoto.text;
-            photoText.style.display = 'block';
-            objectText.style.display = 'none';
-            
-            if (availablePhoto.type === 'video') {
-                currentVideo.src = availablePhoto.url;
-                currentVideo.style.display = 'block';
-                currentPhoto.style.display = 'none';
             } else {
-                currentPhoto.src = availablePhoto.url;
+                // Imagen normal
+                currentPhoto.src = selectedPhoto.url;
                 currentVideo.style.display = 'none';
                 currentPhoto.style.display = 'block';
                 
-                // Error handling para fotos especiales
+                // Error handling para fotos
                 currentPhoto.onerror = function() {
-                    this.src = `https://via.placeholder.com/400x300/6c5ce7/ffffff?text=FOTO+ESPECIAL+-+Imagen+no+encontrada`;
+                    this.src = `https://via.placeholder.com/400x300/6c5ce7/ffffff?text=FOTO+-+Imagen+no+encontrada`;
                 };
             }
             
-            // Efecto visual especial
-            createFallingObject('📸');
-            specialCount++;
-            updateScore(150); // Más puntos por foto especial
-            document.getElementById('specialCount').textContent = specialCount;
+            // Efectos visuales según el tipo
+            if (selectedPhoto.isSpecial) {
+                createFallingObject('📸');
+                updateScore(150); // Más puntos por foto especial
+            } else {
+                createFallingObject('💝');
+                updateScore(100); // Puntos normales
+            }
+            
+            // Actualizar contador
+            const photosFound = allPhotos.filter(photo => photo.found).length;
+            document.getElementById('photosFound').textContent = photosFound;
+            
+            // Verificar si el juego terminó
+            if (photosFound >= allPhotos.length) {
+                setTimeout(() => {
+                    document.getElementById('finalMessage').style.display = 'block';
+                }, 500);
+            }
             
             photoDisplay.style.display = 'block';
         }
@@ -627,7 +650,9 @@
             document.getElementById('photoText').style.display = 'block';
             document.getElementById('objectText').style.display = 'none';
             
-            if (clickCount >= maxClicks) {
+            // Verificar si todas las fotos han sido encontradas
+            const photosFound = allPhotos.filter(photo => photo.found).length;
+            if (photosFound >= allPhotos.length) {
                 setTimeout(() => {
                     document.getElementById('finalMessage').style.display = 'block';
                 }, 500);
@@ -641,41 +666,20 @@
         }
         
         function handleSharkClick() {
-            // Solo permitir fotos especiales y objetos si no estamos en el nivel final (clickCount !== 4)
-            if (clickCount < maxClicks && clickCount !== 4) {
-                const randomValue = Math.random();
-                const hasSpecialPhotos = specialPhotos.some(photo => !photo.found);
-                
-                // 40% probabilidad de foto especial (si quedan disponibles)
-                // 60% probabilidad de objeto perdido
-                if (randomValue < 0.4 && hasSpecialPhotos) {
-                    showSpecialPhoto();
-                    return; // Salir aquí para no continuar con las fotos principales
-                } else {
-                    showLostObject();
-                    return; // Salir aquí para no continuar con las fotos principales
-                }
+            const randomValue = Math.random();
+            const availablePhotos = allPhotos.filter(photo => !photo.found);
+            
+            // Si no quedan fotos, solo mostrar objetos
+            if (availablePhotos.length === 0) {
+                showLostObject();
+                return;
             }
             
-            // Solo llegar aquí si es el nivel final o si necesitamos una foto principal
-            if (clickCount < maxClicks) {
-                clickCount++;
-                document.getElementById('clickCount').textContent = clickCount;
-                updateScore(clickCount === 5 ? 500 : 100); // Mega bonus por el video final
-                
-                // Mensaje especial para el nivel final
-                if (clickCount === 5) {
-                    // Cambiar texto del contador para celebrar
-                    document.querySelector('.counter').innerHTML = `
-                        <div style="color: #ff6b6b;">¡NIVEL COMPLETADO!</div>
-                        <div style="color: #00ff41;">¡VIDEO DESBLOQUEADO!</div>
-                    `;
-                }
-                
-                // Actualizar velocidad del tiburón según el nuevo nivel
-                startSharkMovement();
-                
-                showPhoto(clickCount - 1);
+            // 70% probabilidad de foto, 30% probabilidad de objeto
+            if (randomValue < 0.7) {
+                showRandomPhoto();
+            } else {
+                showLostObject();
             }
         }
         
@@ -683,34 +687,25 @@
         shark.addEventListener('click', handleSharkClick);
         sharkFallback.addEventListener('click', handleSharkClick);
         
-        // Variables para controlar la velocidad del tiburón
-        let moveInterval;
-        
         function startSharkMovement() {
             // Limpiar intervalo anterior si existe
             if (moveInterval) {
                 clearInterval(moveInterval);
             }
             
-            // Determinar velocidad según el nivel
-            let speed;
-            if (clickCount === 4) {
-                speed = 1200; // NIVEL FINAL: cada 1.2 segundos (súper rápido)
-            } else if (clickCount >= 2) {
-                speed = 1500; // Niveles 3-4: cada 1.5 segundos
-            } else {
-                speed = 1800; // Niveles 1-2: cada 1.8 segundos
-            }
+            // Velocidad constante para el nuevo sistema
+            const speed = 1500; // cada 1.5 segundos
             
-            // Crear nuevo intervalo con la velocidad correcta
+            // Crear nuevo intervalo
             moveInterval = setInterval(() => {
-                if (clickCount < maxClicks && document.getElementById('photoDisplay').style.display !== 'block') {
+                if (document.getElementById('photoDisplay').style.display !== 'block') {
                     moveShark();
                 }
             }, speed);
         }
         
-        // Inicializar posición y movimiento del tiburón
+        // Inicializar el juego
+        document.getElementById('totalPhotos').textContent = allPhotos.length;
         moveShark();
         startSharkMovement();
     </script>
